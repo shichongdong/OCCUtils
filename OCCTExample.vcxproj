@@ -113,7 +113,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(OCCT_DIR)\win64\vc14\lib;$(BOOST71_DIR)\lib64-msvc-14.2;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>TKBO.lib;TKG2d.lib;TKG3d.lib;TKFillet.lib;TKMath.lib;TKernel.lib;TKBRep.lib;TKOffset.lib;TKIGES.lib;TKXCAF.lib;TKPrim.lib;TKSTEP.lib;TKLCAF.lib;TKXSBase.lib;TKXDESTEP.lib;TKTopAlgo.lib;TKGeomBase.lib;TKGeomAlgo.lib;libboost_unit_test_framework-vc142-mt-gd-x64-1_71.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>TKBO.lib;TKG2d.lib;TKG3d.lib;TKFillet.lib;TKMath.lib;TKernel.lib;TKBRep.lib;TKOffset.lib;TKIGES.lib;TKXCAF.lib;TKPrim.lib;TKSTEP.lib;TKLCAF.lib;TKXSBase.lib;TKXDESTEP.lib;TKTopAlgo.lib;TKGeomBase.lib;TKGeomAlgo.lib;TKRWMesh.lib;libboost_unit_test_framework-vc142-mt-gd-x64-1_71.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

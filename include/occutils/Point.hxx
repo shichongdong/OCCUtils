@@ -48,6 +48,11 @@ namespace OCCUtils {
         double Distance(const gp_Pnt& pnt, const gp_Ax1& axis);
 
         /**
+         * Get the distance between pnt and pnt,
+         */
+        double Distance(const gp_Pnt& pt1, const gp_Pnt& pt2);
+
+        /**
          * Orthogonally project pnt onto ax
          */
         gp_Pnt OrthogonalProjectOnto(const gp_Pnt &pnt, const gp_Ax1 &ax);

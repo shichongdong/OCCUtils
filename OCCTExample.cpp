@@ -27,8 +27,9 @@
 #include <occutils/Curve.hxx>
 #include <TopExp_Explorer.hxx>
 #include <BRepAlgoAPI_Fuse.hxx>
+#include "FollowSlope/FollowSlopeService.h"
 
-int main()
+void FolloeSlopeDemoByDONG()
 {
     IGESControl_Reader reader;
     IFSelect_ReturnStatus stat = reader.ReadFile("D:\\beam.igs");
@@ -45,7 +46,6 @@ int main()
 
     IGESControl_Controller::Init();
     IGESControl_Writer ICW("MM", 0);
-
 
     IGESControl_Reader reader2;
     IFSelect_ReturnStatus stat2 = reader2.ReadFile("D:\\sloperoof.igs");
@@ -89,7 +89,7 @@ int main()
                 project.Load(adaptor, Precision::Confusion());
                 Handle(GeomAdaptor_Curve) result = project.GetResult();
                 Handle(Geom_TrimmedCurve) trimmed = new Geom_TrimmedCurve(result->Curve(), umin, umax);
-                BRepBuilderAPI_MakePolygon maker(vertices[0], vertices[1], 
+                BRepBuilderAPI_MakePolygon maker(vertices[0], vertices[1],
                     trimmed->EndPoint(), trimmed->StartPoint(), Standard_True);
                 BRepBuilderAPI_MakeFace faceMaker(maker.Wire());
                 double area = OCCUtils::Surface::Area(faceMaker.Face());
@@ -97,6 +97,7 @@ int main()
                 for (TopExp_Explorer explorer(section.Shape(), TopAbs_EDGE); explorer.More(); explorer.Next())
                 {
                     TopoDS_Shape shape = explorer.Value();
+                    //
                     ICW.AddShape(shape);
                 }
             }
@@ -189,7 +190,13 @@ int main()
     //    //sewing.Perform();
     //    //const TopoDS_Shape& shape = sewing.SewedShape();
     //}
+}
 
+int main()
+{
+    //FolloeSlopeDemoByDONG();
+    FollowSlopeService followService;
+    followService.FollowSlope("D:\\beam.igs", "D:\\sloperoof.igs");
     return 0;
 }
 

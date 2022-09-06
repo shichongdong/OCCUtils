@@ -106,14 +106,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>.\include;$(BOOST71_DIR);$(OCCT_DIR)\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\include;$(BOOST_DIR);$(OCCT_DIR)\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(OCCT_DIR)\win64\vc14\lib;$(BOOST71_DIR)\lib64-msvc-14.2;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>TKBO.lib;TKG2d.lib;TKG3d.lib;TKFillet.lib;TKMath.lib;TKernel.lib;TKBRep.lib;TKOffset.lib;TKIGES.lib;TKXCAF.lib;TKPrim.lib;TKSTEP.lib;TKLCAF.lib;TKXSBase.lib;TKXDESTEP.lib;TKTopAlgo.lib;TKGeomBase.lib;TKGeomAlgo.lib;TKRWMesh.lib;libboost_unit_test_framework-vc142-mt-gd-x64-1_71.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OCCT_DIR)\win64\vc14\lib;$(BOOST_DIR)\lib64-msvc-14.2;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>TKBO.lib;TKG2d.lib;TKG3d.lib;TKFillet.lib;TKMath.lib;TKernel.lib;TKBRep.lib;TKOffset.lib;TKIGES.lib;TKXCAF.lib;TKPrim.lib;TKSTEP.lib;TKLCAF.lib;TKXSBase.lib;TKXDESTEP.lib;TKTopAlgo.lib;TKGeomBase.lib;TKGeomAlgo.lib;TKRWMesh.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -155,6 +155,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="FollowSlope\FollowSlopeService.cpp" />
     <ClCompile Include="OCCTExample.cpp" />
     <ClCompile Include="src\Axis.cxx" />
     <ClCompile Include="src\Boolean.cxx" />
@@ -178,9 +179,9 @@
     <ClCompile Include="src\STEPExport.cxx" />
     <ClCompile Include="src\Surface.cxx" />
     <ClCompile Include="src\Wire.cxx" />
-    <ClCompile Include="tests\TestLine.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="FollowSlope\FollowSlopeService.h" />
     <ClInclude Include="include\occutils\Axis.hxx" />
     <ClInclude Include="include\occutils\Boolean.hxx" />
     <ClInclude Include="include\occutils\Compound.hxx" />

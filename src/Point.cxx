@@ -62,6 +62,11 @@ double OCCUtils::Point::Distance(const gp_Pnt& pnt, const gp_Ax1& axis) {
     return Axis::Distance(axis, pnt);
 }
 
+double OCCUtils::Point::Distance(const gp_Pnt& pt1, const gp_Pnt& pt2)
+{
+    return sqrt(pow((pt2.X() - pt1.X()), 2) + pow((pt2.Y() - pt1.Y()), 2) + pow((pt2.Y() - pt1.Y()), 2));
+}
+
 gp_Pnt OCCUtils::Point::OrthogonalProjectOnto(const gp_Pnt &pnt, const gp_Ax1 &ax) {
     Handle(Geom_Line) hax = new Geom_Line(ax);
     auto projector = GeomAPI_ProjectPointOnCurve(pnt, hax);

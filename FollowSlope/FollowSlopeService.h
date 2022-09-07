@@ -18,6 +18,7 @@
 #include <occutils/Point.hxx>
 #include <occutils/Direction.hxx>
 #include <occutils/Edge.hxx>
+#include <occutils/Face.hxx>
 #include <BRepBuilderAPI_MakeEdge.hxx>
 #include <map>
 #include <Geom_Plane.hxx>
@@ -27,8 +28,8 @@ class FollowSlopeService
 public :
     void FollowSlope(std::string beamPath, std::string roofPath);
 private:
-    std::vector<std::pair<TopoDS_Edge, gp_Ax1>> CreateCompleteBeam(std::vector<std::pair<TopoDS_Edge, gp_Ax1>>);
+    std::vector<std::pair<TopoDS_Edge, gp_Dir>> CreateCompleteBeam(std::vector<std::pair<TopoDS_Edge, gp_Dir>>);
     TopoDS_Edge MergeBeamLines(std::vector<TopoDS_Edge> edges, gp_Pnt& pt1, gp_Pnt& pt2);
-    std::vector<TopoDS_Edge> CreateBeamSolidEdges(std::vector<std::pair<TopoDS_Edge, gp_Ax1>>);
+    std::vector<TopoDS_Edge> CreateBeamSolidEdges(std::vector<std::pair<TopoDS_Edge, gp_Dir>>);
+    bool CalFaceDirection(TopoDS_Face, TopoDS_Edge, gp_Dir& resDir);
 };
-

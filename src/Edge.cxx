@@ -6,6 +6,9 @@
 #include <Precision.hxx>
 #include <BRepBuilderAPI_MakeEdge.hxx>
 #include <gp_Circ.hxx>
+#include <TopExp_Explorer.hxx>
+#include <TopoDS.hxx>
+#include <BRep_Tool.hxx>
 
 TopoDS_Edge OCCUtils::Edge::FromPoints (const gp_Pnt& p1, const gp_Pnt& p2) {
     // Are the two points coincident?
@@ -35,6 +38,16 @@ TopoDS_Edge OCCUtils::Edge::FullCircle(const gp_Pnt& center, const gp_Dir& direc
 
 TopoDS_Edge OCCUtils::Edge::FullCircle(const gp_Ax2& axis, double radius) {
     return BRepBuilderAPI_MakeEdge(gp_Circ(axis, radius)).Edge();
+}
+
+std::vector<gp_Pnt> OCCUtils::Edge::EdgePoints(TopoDS_Edge edge) {
+    std::vector<gp_Pnt> vertices;
+    for (TopExp_Explorer expVert(edge, TopAbs_VERTEX); expVert.More(); expVert.Next())
+    {
+        TopoDS_Vertex vert = TopoDS::Vertex(expVert.Current());
+        vertices.push_back(BRep_Tool::Pnt(vert));
+    }
+    return vertices;
 }
 
 double OCCUtils::Edge::Length(const TopoDS_Edge& edge) {

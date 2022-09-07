@@ -4,6 +4,7 @@
 #include <gp_Ax1.hxx>
 #include <gp_Ax2.hxx>
 #include <gp_Dir.hxx>
+#include <vector>
 
 namespace OCCUtils {
     namespace Edge {
@@ -44,6 +45,11 @@ namespace OCCUtils {
          */
         TopoDS_Edge CircleSegment(const gp_Ax2& axis, double radius,
             const gp_Pnt& p1, const gp_Pnt& p2);
+
+        /**
+        * Get gp_Pnt In edge
+        */
+        std::vector<gp_Pnt> EdgePoints(TopoDS_Edge);
         
         /**
          * Get the length of the given edge

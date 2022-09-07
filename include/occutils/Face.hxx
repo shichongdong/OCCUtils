@@ -56,5 +56,9 @@ namespace OCCUtils {
          */
         std::optional<gp_Dir> NormalDirection(const TopoDS_Face& face, double u = 0.0, double v = 0.0, double precision=1e-6);
 
+        /**
+        * Get edge In face
+        */
+        std::vector<TopoDS_Edge> FaceEdges(TopoDS_Face);
     }
 }

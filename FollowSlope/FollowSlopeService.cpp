@@ -17,15 +17,18 @@ void FollowSlopeService::FollowSlope(std::string beamPath, std::string roofPath)
     double maxZValue = DBL_MIN;
     for (Standard_Integer i = 1; i <= reader2.NbShapes(); i++) {
         TopoDS_Shape roofShape = reader2.Shape(i);
-        TopoDS_Face face = TopoDS::Face(roofShape);
-        TopoDS_Wire outerWire = BRepTools::OuterWire(face);//get the outer loop
-        for (TopExp_Explorer expVert(face, TopAbs_VERTEX); expVert.More(); expVert.Next())
+        auto type = roofShape.ShapeType();
+        if (type == TopAbs_ShapeEnum::TopAbs_FACE)
         {
-            TopoDS_Vertex roofVert = TopoDS::Vertex(expVert.Current());
-            auto roofPt = BRep_Tool::Pnt(roofVert);
-            if (maxZValue < roofPt.Z())
+            TopoDS_Face face = TopoDS::Face(roofShape);
+            for (TopExp_Explorer expVert(face, TopAbs_VERTEX); expVert.More(); expVert.Next())
             {
-                maxZValue = roofPt.Z();
+                TopoDS_Vertex roofVert = TopoDS::Vertex(expVert.Current());
+                auto roofPt = BRep_Tool::Pnt(roofVert);
+                if (maxZValue < roofPt.Z())
+                {
+                    maxZValue = roofPt.Z();
+                }
             }
         }
     }
@@ -34,35 +37,37 @@ void FollowSlopeService::FollowSlope(std::string beamPath, std::string roofPath)
     for (Standard_Integer i = 1; i <= reader.NbShapes(); i++)
     {
         TopoDS_Shape beamShape = reader.Shape(i);
-        std::vector<std::pair<TopoDS_Edge, gp_Ax1>> edgeMap;
+        std::vector<std::pair<TopoDS_Edge, gp_Dir>> edgeMap;
+
+        std::vector<gp_Pnt> vertices = OCCUtils::Edge::EdgePoints(TopoDS::Edge(beamShape));
+        gp_Pnt pt1 = vertices[0];
+        gp_Pnt pt2 = vertices[1];
+        auto pt3 = gp_Pnt(pt2.X(), pt2.Y(), pt2.Z() + maxZValue);
+        auto pt4 = gp_Pnt(pt1.X(), pt1.Y(), pt1.Z() + maxZValue);
+        BRepBuilderAPI_MakePolygon maker(pt1, pt2, pt3, pt4, Standard_True);
+        BRepBuilderAPI_MakeFace faceMaker(maker.Wire());
         for (Standard_Integer i = 1; i <= reader2.NbShapes(); i++)
         {
             TopoDS_Shape roofShape = reader2.Shape(i);
-            TopoDS_Face face = TopoDS::Face(roofShape);
-
-            Handle(Geom_Surface) surface = BRep_Tool::Surface(face);
-            GeomLib_IsPlanarSurface isPlanar(surface);
-            if (isPlanar.IsPlanar()) {
-                Handle(Geom_Plane) plane = new Geom_Plane(isPlanar.Plan());
-                gp_Ax1 dir = plane->Axis();
-                std::vector<gp_Pnt> vertices;
-                for (TopExp_Explorer expVert(TopoDS::Edge(beamShape), TopAbs_VERTEX); expVert.More(); expVert.Next())
-                {
-                    TopoDS_Vertex vert = TopoDS::Vertex(expVert.Current());
-                    vertices.push_back(BRep_Tool::Pnt(vert));
-                }
-                gp_Pnt pt1 = vertices[0];
-                gp_Pnt pt2 = vertices[1];
-                auto pt3 = gp_Pnt(pt2.X(), pt2.Y(), pt2.Z() + maxZValue);
-                auto pt4 = gp_Pnt(pt1.X(), pt1.Y(), pt1.Z() + maxZValue);
-                BRepBuilderAPI_MakePolygon maker(pt1, pt2, pt3, pt4, Standard_True);
-                BRepBuilderAPI_MakeFace faceMaker(maker.Wire());
+            if (roofShape.ShapeType() == TopAbs_ShapeEnum::TopAbs_FACE) {
+                TopoDS_Face face = TopoDS::Face(roofShape);
+                Handle(Geom_Surface) surface = BRep_Tool::Surface(face);
+                GeomLib_IsPlanarSurface isPlanar(surface);
                 BRepAlgoAPI_Section section(face, faceMaker.Face());
+                gp_Dir dir;
+                bool first = true;
                 for (TopExp_Explorer explorer(section.Shape(), TopAbs_EDGE); explorer.More(); explorer.Next())
                 {
                     TopoDS_Shape shape = explorer.Value();
                     TopoDS_Edge edge = TopoDS::Edge(shape);
-                    edgeMap.push_back(std::pair<TopoDS_Edge, gp_Ax1>(edge, dir));
+                    if (first)
+                    {
+                        if (!CalFaceDirection(face, edge, dir)) {
+                            continue;
+                            first = false;
+                        }
+                    }
+                    edgeMap.push_back(std::pair<TopoDS_Edge, gp_Dir>(edge, dir));
                 }
             }
         }
@@ -82,25 +87,21 @@ void FollowSlopeService::FollowSlope(std::string beamPath, std::string roofPath)
     ICW.Write("D:\\result.igs");
 }
 
-std::vector<TopoDS_Edge> FollowSlopeService::CreateBeamSolidEdges(std::vector<std::pair<TopoDS_Edge, gp_Ax1>> edges)
+std::vector<TopoDS_Edge> FollowSlopeService::CreateBeamSolidEdges(std::vector<std::pair<TopoDS_Edge, gp_Dir>> edges)
 {
     std::vector<TopoDS_Edge> resEdges;
     for (auto edgeIt : edges)
     {
         auto edge = edgeIt.first;
-        auto dir = edgeIt.second.Direction();
+        auto dir = edgeIt.second;
 
-        std::vector<gp_Pnt> vertices;
-        for (TopExp_Explorer expVert(edge, TopAbs_VERTEX); expVert.More(); expVert.Next())
-        {
-            TopoDS_Vertex vert = TopoDS::Vertex(expVert.Current());
-            vertices.push_back(BRep_Tool::Pnt(vert));
-        }
+        std::vector<gp_Pnt> vertices = OCCUtils::Edge::EdgePoints(edge);
         gp_Pnt pt1 = vertices[0];
         gp_Pnt pt2 = vertices[1];
         auto fPt = pt2 - pt1;
         gp_Dir zDir(0, 0, 1);
         gp_Dir xDir(fPt.X(), fPt.Y(), fPt.Z());
+        
         gp_Dir yDir = xDir.Crossed(zDir);
         if (!zDir.IsParallel(dir, 0.001))
         {
@@ -143,9 +144,9 @@ std::vector<TopoDS_Edge> FollowSlopeService::CreateBeamSolidEdges(std::vector<st
 /// </summary>
 /// <param name="edges"></param>
 /// <returns></returns>
-std::vector<std::pair<TopoDS_Edge, gp_Ax1>>  FollowSlopeService::CreateCompleteBeam(std::vector<std::pair<TopoDS_Edge, gp_Ax1>> edges)
+std::vector<std::pair<TopoDS_Edge, gp_Dir>>  FollowSlopeService::CreateCompleteBeam(std::vector<std::pair<TopoDS_Edge, gp_Dir>> edges)
 {
-    std::vector<std::pair<std::vector<TopoDS_Edge>, gp_Ax1>> groupEdges;
+    std::vector<std::pair<std::vector<TopoDS_Edge>, gp_Dir>> groupEdges;
     std::vector<TopoDS_Edge> completeEdges;
     auto dir = edges.begin()->second;
     while (edges.size() > 0)
@@ -166,12 +167,7 @@ std::vector<std::pair<TopoDS_Edge, gp_Ax1>>  FollowSlopeService::CreateCompleteB
         auto it = edges.begin();
         while (it != edges.end())
         {
-            std::vector<gp_Pnt> vertices;
-            for (TopExp_Explorer expVert(it->first, TopAbs_VERTEX); expVert.More(); expVert.Next())
-            {
-                TopoDS_Vertex vert = TopoDS::Vertex(expVert.Current());
-                vertices.push_back(BRep_Tool::Pnt(vert));
-            }
+            std::vector<gp_Pnt> vertices = OCCUtils::Edge::EdgePoints(it->first);
             gp_Pnt pt1 = vertices[0];
             gp_Pnt pt2 = vertices[1];
             auto ePt = pt1 - pt2;
@@ -193,19 +189,19 @@ std::vector<std::pair<TopoDS_Edge, gp_Ax1>>  FollowSlopeService::CreateCompleteB
         }
         if (!change)
         {
-            groupEdges.push_back(std::pair<std::vector<TopoDS_Edge>, gp_Ax1>(completeEdges, dir));
+            groupEdges.push_back(std::pair<std::vector<TopoDS_Edge>, gp_Dir>(completeEdges, dir));
             completeEdges.clear();
         }
     }
     if (completeEdges.size() > 0)
     {
-        groupEdges.push_back(std::pair<std::vector<TopoDS_Edge>, gp_Ax1>(completeEdges, dir));
+        groupEdges.push_back(std::pair<std::vector<TopoDS_Edge>, gp_Dir>(completeEdges, dir));
     }
-    std::vector<std::pair<TopoDS_Edge, gp_Ax1>>  resEdges;
+    std::vector<std::pair<TopoDS_Edge, gp_Dir>> resEdges;
     for (auto it : groupEdges)
     {
         gp_Pnt tempPt1, tempPt2;
-        resEdges.push_back(std::pair<TopoDS_Edge, gp_Ax1>(MergeBeamLines(it.first, tempPt1, tempPt2), it.second));
+        resEdges.push_back(std::pair<TopoDS_Edge, gp_Dir>(MergeBeamLines(it.first, tempPt1, tempPt2), it.second));
     }
 
     return resEdges;
@@ -221,7 +217,7 @@ TopoDS_Edge FollowSlopeService::MergeBeamLines(std::vector<TopoDS_Edge> edges, g
     std::vector<gp_Pnt> ptLst;
     for (size_t i = 0; i < edges.size(); i++)
     {
-        for (TopExp_Explorer expVert(edges[0], TopAbs_VERTEX); expVert.More(); expVert.Next())
+        for (TopExp_Explorer expVert(edges[i], TopAbs_VERTEX); expVert.More(); expVert.Next())
         {
             TopoDS_Vertex vert = TopoDS::Vertex(expVert.Current());
             ptLst.push_back(BRep_Tool::Pnt(vert));
@@ -258,4 +254,24 @@ TopoDS_Edge FollowSlopeService::MergeBeamLines(std::vector<TopoDS_Edge> edges, g
     pt1 = sp;
     pt2 = ep;
     return beamEdge;
+}
+
+bool FollowSlopeService::CalFaceDirection(TopoDS_Face face, TopoDS_Edge edge, gp_Dir& resDir)
+{
+    auto edges = OCCUtils::Face::FaceEdges(face);
+    auto pts = OCCUtils::Edge::EdgePoints(edge);
+    auto pt = pts[1] - pts[0];
+    gp_Dir fDir(pt.X(), pt.Y(), pt.Z());
+    for (auto tmpEdge : edges)
+    {
+        auto tmpPts = OCCUtils::Edge::EdgePoints(tmpEdge);
+        auto ept = tmpPts[1] - tmpPts[0];
+        gp_Dir eDir(ept.X(), ept.Y(), ept.Z());
+        if (!fDir.IsParallel(eDir, 0.0001))
+        {
+            resDir = fDir.Crossed(eDir);
+            return true;
+        }
+    }
+    return false;
 }

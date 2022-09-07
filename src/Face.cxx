@@ -3,6 +3,8 @@
 #include "occutils/Surface.hxx"
 
 #include <BRepBuilderAPI_MakeFace.hxx>
+#include <TopExp_Explorer.hxx>
+#include <TopoDS.hxx>
 
 using namespace OCCUtils;
 
@@ -45,4 +47,15 @@ std::optional<gp_Dir> OCCUtils::Face::NormalDirection(const TopoDS_Face& face, d
 
 TopoDS_Face OCCUtils::Face::FromPoints(const std::vector<gp_Pnt>& points) {
     return FromWire(Wire::FromPoints(points, true));
+}
+
+std::vector<TopoDS_Edge> OCCUtils::Face::FaceEdges(TopoDS_Face face) {
+    std::vector<TopoDS_Edge> resEdges;
+    for (TopExp_Explorer explorer(face, TopAbs_EDGE); explorer.More(); explorer.Next())
+    {
+        TopoDS_Shape shape = explorer.Value();
+        TopoDS_Edge edge = TopoDS::Edge(shape);
+        resEdges.push_back(edge);
+    }
+    return resEdges;
 }

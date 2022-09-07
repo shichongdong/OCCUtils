@@ -196,7 +196,7 @@ int main()
 {
     //FolloeSlopeDemoByDONG();
     FollowSlopeService followService;
-    followService.FollowSlope("D:\\beam.igs", "D:\\sloperoof.igs");
+    followService.FollowSlope("D:\\beam1.igs", "D:\\roof1.igs");
     return 0;
 }
 

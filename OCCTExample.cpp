@@ -28,6 +28,7 @@
 #include <TopExp_Explorer.hxx>
 #include <BRepAlgoAPI_Fuse.hxx>
 #include "FollowSlope/FollowSlopeService.h"
+#include "FollowSlope/FollowSlopeServiceWithColumn.h"
 
 void FolloeSlopeDemoByDONG()
 {
@@ -35,14 +36,6 @@ void FolloeSlopeDemoByDONG()
     IFSelect_ReturnStatus stat = reader.ReadFile("D:\\beam.igs");
     Handle(TColStd_HSequenceOfTransient)  list = reader.GiveList();
     Standard_Integer nbtrans = reader.TransferList(list);
-    //TopoDS_Shape shape = reader.Shape();
-    //TopoDS_Edge edge = TopoDS::Edge(shape);
-    //TopAbs_ShapeEnum type = shape.ShapeType();
-    //for (TopExp_Explorer expVert(edge, TopAbs_VERTEX); expVert.More(); expVert.Next())
-    //{
-    //    TopoDS_Vertex vert = TopoDS::Vertex(expVert.Current());
-    //    gp_Pnt v = BRep_Tool::Pnt(vert);
-    //}
 
     IGESControl_Controller::Init();
     IGESControl_Writer ICW("MM", 0);
@@ -107,6 +100,7 @@ void FolloeSlopeDemoByDONG()
 
     ICW.ComputeModel();
     ICW.Write("D:\\result.igs");
+#pragma region 暂时不要
     //Handle(Poly_Triangulation) aTriangulation = RWObj::ReadFile("D:\\sloperoof.obj");
     //if (!aTriangulation.IsNull() && aTriangulation->HasGeometry())
     //{
@@ -190,13 +184,22 @@ void FolloeSlopeDemoByDONG()
     //    //sewing.Perform();
     //    //const TopoDS_Shape& shape = sewing.SewedShape();
     //}
+#pragma endregion
 }
 
 int main()
 {
     //FolloeSlopeDemoByDONG();
-    FollowSlopeService followService;
-    followService.FollowSlope("D:\\beam1.igs", "D:\\roof1.igs");
+    /*FollowSlopeService followService;
+    followService.FollowSlope("D:\\beam1.igs", "D:\\roof1.igs");*/
+
+    FollowSlopeServiceWithColumn followService;
+    /*followService.FollowSlope("D:\\FollowSlopeTest\\temp",
+        "D:\\FollowSlopeTest\\Roof", "");*/
+  /*  followService.FollowSlope("D:\\FollowSlopeTest\\Beam",
+        "D:\\FollowSlopeTest\\Roof", "D:\\FollowSlopeTest\\Column");*/
+    followService.FollowSlope("D:\\FollowSlopeTest\\Beam",
+        "D:\\FollowSlopeTest\\Roof", "D:\\FollowSlopeTest\\Column");
     return 0;
 }
 

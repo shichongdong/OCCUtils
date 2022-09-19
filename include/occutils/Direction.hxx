@@ -53,5 +53,10 @@ namespace OCCUtils {
          * Get the direction that is orthogonal to both a and b.
          */
         gp_Dir Orthogonal(const gp_Dir& a, const gp_Dir& b);
+
+        /**
+        * Get the unit vector bt dir a
+        */
+        gp_Dir Normalized(const gp_Dir& a);
     }
 }

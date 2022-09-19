@@ -1,5 +1,6 @@
 #include "occutils/Direction.hxx"
 #include <gp_XYZ.hxx>
+#include <math.h>
 
 gp_Vec operator*(const gp_Dir &a, double factor) {
     return gp_Vec(a.X() * factor, a.Y() * factor, a.Z() * factor);
@@ -56,4 +57,10 @@ gp_Dir2d OCCUtils::Direction::MinusY2d() {
 
 gp_Dir OCCUtils::Direction::Orthogonal(const gp_Dir& a, const gp_Dir& b) {
     return a.Crossed(b);
+}
+
+gp_Dir OCCUtils::Direction::Normalized(const gp_Dir& a)
+{
+    auto module = sqrt(pow(a.X(), 2) + pow(a.Y(), 2) + pow(a.Z(), 2));
+    return gp_Dir(a.X() / module, a.Y() / module, a.Z() / module);
 }

@@ -64,8 +64,8 @@ void FollowSlopeService::FollowSlope(std::string beamPath, std::string roofPath)
                     {
                         if (!CalFaceDirection(face, edge, dir)) {
                             continue;
-                            first = false;
                         }
+                        first = false;
                     }
                     edgeMap.push_back(std::pair<TopoDS_Edge, gp_Dir>(edge, dir));
                 }
@@ -75,7 +75,8 @@ void FollowSlopeService::FollowSlope(std::string beamPath, std::string roofPath)
         if (edgeMap.size() > 0)
         {
             auto resEdges = CreateCompleteBeam(edgeMap);
-            auto beamEdges = CreateBeamSolidEdges(resEdges);
+            //auto beamEdges = CreateBeamSolidEdges(resEdges);
+            auto beamEdges = CreateBeamSolidSolids(resEdges);
             for (size_t i = 0; i < beamEdges.size(); i++)
             {
                 ICW.AddShape(beamEdges[i]);
@@ -100,9 +101,9 @@ std::vector<TopoDS_Edge> FollowSlopeService::CreateBeamSolidEdges(std::vector<st
         gp_Pnt pt2 = vertices[1];
         auto fPt = pt2 - pt1;
         gp_Dir zDir(0, 0, 1);
-        gp_Dir xDir(fPt.X(), fPt.Y(), fPt.Z());
-        
+        gp_Dir xDir = OCCUtils::Direction::Normalized(gp_Dir(fPt.X(), fPt.Y(), fPt.Z()));
         gp_Dir yDir = xDir.Crossed(zDir);
+        double widthScale = 1;
         if (!zDir.IsParallel(dir, 0.001))
         {
             gp_Dir checkDir = dir.Crossed(dir.Crossed(zDir));
@@ -110,12 +111,15 @@ std::vector<TopoDS_Edge> FollowSlopeService::CreateBeamSolidEdges(std::vector<st
             {
                 yDir = checkDir;
             }
+
+            gp_Dir scaleDir = OCCUtils::Direction::Normalized(gp_Dir(yDir.X(), yDir.Y(), 0));
+            widthScale = sqrt(pow(scaleDir.X(), 2) + pow(scaleDir.Y(), 2) + pow(scaleDir.Z(), 2)) / sqrt(pow(yDir.X(), 2) + pow(yDir.Y(), 2) + 0);
         }
         
-        auto p1 = pt1 + yDir * 5;
-        auto p2 = pt2 + yDir * 5;
-        auto p3 = pt2 - yDir * 5;
-        auto p4 = pt1 - yDir * 5;
+        auto p1 = pt1 + yDir * 5 * widthScale;
+        auto p2 = pt2 + yDir * 5 * widthScale;
+        auto p3 = pt2 - yDir * 5 * widthScale;
+        auto p4 = pt1 - yDir * 5 * widthScale;
 
         auto p5 = p1 - zDir * 5;
         auto p6 = p2 - zDir * 5;
@@ -139,12 +143,80 @@ std::vector<TopoDS_Edge> FollowSlopeService::CreateBeamSolidEdges(std::vector<st
     return resEdges;
 }
 
+std::vector<TopoDS_Face> FollowSlopeService::CreateBeamSolidSolids(std::vector<std::pair<TopoDS_Edge, gp_Dir>> edges)
+{
+    std::vector<TopoDS_Face> resSolids;
+    for (auto edgeIt : edges)
+    {
+        auto edge = edgeIt.first;
+        auto dir = edgeIt.second;
+
+        std::vector<gp_Pnt> vertices = OCCUtils::Edge::EdgePoints(edge);
+        gp_Pnt pt1 = vertices[0];
+        gp_Pnt pt2 = vertices[1];
+        auto fPt = pt2 - pt1;
+        gp_Dir zDir(0, 0, 1);
+        gp_Dir xDir = OCCUtils::Direction::Normalized(gp_Dir(fPt.X(), fPt.Y(), fPt.Z()));
+        gp_Dir yDir = xDir.Crossed(zDir);
+        double widthScale = 1;
+        if (!zDir.IsParallel(dir, 0.001))
+        {
+            gp_Dir checkDir = dir.Crossed(dir.Crossed(zDir));
+            if (abs(xDir.Dot(checkDir)) < 0.1)
+            {
+                yDir = checkDir;
+            }
+
+            gp_Dir scaleDir = OCCUtils::Direction::Normalized(gp_Dir(yDir.X(), yDir.Y(), 0));
+            widthScale = sqrt(pow(scaleDir.X(), 2) + pow(scaleDir.Y(), 2) + pow(scaleDir.Z(), 2)) / sqrt(pow(yDir.X(), 2) + pow(yDir.Y(), 2) + 0);
+        }
+
+        auto p1 = pt1 + yDir * 100 * widthScale;
+        auto p2 = pt2 + yDir * 100 * widthScale;
+        auto p3 = pt2 - yDir * 100 * widthScale;
+        auto p4 = pt1 - yDir * 100 * widthScale;
+
+        auto p5 = p1 - zDir * 400;
+        auto p6 = p2 - zDir * 400;
+        auto p7 = p3 - zDir * 400;;
+        auto p8 = p4 - zDir * 400;
+
+        BRepBuilderAPI_MakePolygon maker1(p1, p2, p3, p4, Standard_True);
+        auto face1 = BRepBuilderAPI_MakeFace(maker1.Wire()).Face();
+        BRepBuilderAPI_MakePolygon maker2(p1, p2, p6, p5, Standard_True);
+        auto face2 = BRepBuilderAPI_MakeFace(maker2.Wire()).Face();
+        BRepBuilderAPI_MakePolygon maker3(p2, p3, p7, p6, Standard_True);
+        auto face3 = BRepBuilderAPI_MakeFace(maker3.Wire()).Face();
+        BRepBuilderAPI_MakePolygon maker4(p3, p4, p8, p7, Standard_True);
+        auto face4 = BRepBuilderAPI_MakeFace(maker4.Wire()).Face();
+        BRepBuilderAPI_MakePolygon maker5(p4, p1, p5, p8, Standard_True);
+        auto face5 = BRepBuilderAPI_MakeFace(maker5.Wire()).Face();
+        BRepBuilderAPI_MakePolygon maker6(p5, p6, p7, p8, Standard_True);
+        auto face6 = BRepBuilderAPI_MakeFace(maker6.Wire()).Face();
+        std::vector<TopoDS_Face> faces;
+        faces.push_back(face1);
+        faces.push_back(face2);
+        faces.push_back(face3);
+        faces.push_back(face4);
+        faces.push_back(face5);
+        faces.push_back(face6);
+        //auto solids = OCCUtils::Solid::CreateSolidWithVoids(faces);
+        
+        for (size_t i = 0; i < faces.size(); i++)
+        {
+            resSolids.push_back(faces[i]);
+        }
+    }
+
+    return resSolids;
+}
+
 /// <summary>
 /// 将碎梁线合并成整梁线
 /// </summary>
 /// <param name="edges"></param>
 /// <returns></returns>
-std::vector<std::pair<TopoDS_Edge, gp_Dir>>  FollowSlopeService::CreateCompleteBeam(std::vector<std::pair<TopoDS_Edge, gp_Dir>> edges)
+std::vector<std::pair<TopoDS_Edge, gp_Dir>> FollowSlopeService::CreateCompleteBeam(std::vector<std::pair<TopoDS_Edge, gp_Dir>> edges)
 {
     std::vector<std::pair<std::vector<TopoDS_Edge>, gp_Dir>> groupEdges;
     std::vector<TopoDS_Edge> completeEdges;

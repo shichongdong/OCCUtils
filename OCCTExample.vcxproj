@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -113,7 +113,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(OCCT_DIR)\win64\vc14\lib;$(BOOST_DIR)\lib64-msvc-14.2;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>TKBO.lib;TKG2d.lib;TKG3d.lib;TKFillet.lib;TKMath.lib;TKernel.lib;TKBRep.lib;TKOffset.lib;TKIGES.lib;TKXCAF.lib;TKPrim.lib;TKSTEP.lib;TKLCAF.lib;TKXSBase.lib;TKXDESTEP.lib;TKTopAlgo.lib;TKGeomBase.lib;TKGeomAlgo.lib;TKRWMesh.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>TKBO.lib;TKG2d.lib;TKG3d.lib;TKFillet.lib;TKMath.lib;TKernel.lib;TKBRep.lib;TKOffset.lib;TKIGES.lib;TKXCAF.lib;TKPrim.lib;TKSTEP.lib;TKLCAF.lib;TKXSBase.lib;TKXDESTEP.lib;TKTopAlgo.lib;TKGeomBase.lib;TKGeomAlgo.lib;TKRWMesh.lib;TKShHealing.lib;TKMesh.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -155,8 +155,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="FollowSlope\ColumnHandleService.cpp" />
+    <ClCompile Include="FollowSlope\FollowSlopeServiceWithColumn.cpp" />
+    <ClCompile Include="FollowSlope\BeamHandleService.cpp" />
     <ClCompile Include="FollowSlope\FollowSlopeService.cpp" />
     <ClCompile Include="OCCTExample.cpp" />
+    <ClCompile Include="src\Solid.cxx" />
     <ClCompile Include="src\Axis.cxx" />
     <ClCompile Include="src\Boolean.cxx" />
     <ClCompile Include="src\Compound.cxx" />
@@ -181,6 +185,9 @@
     <ClCompile Include="src\Wire.cxx" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="FollowSlope\ColumnHandleService.h" />
+    <ClInclude Include="FollowSlope\FollowSlopeServiceWithColumn.h" />
+    <ClInclude Include="FollowSlope\BeamHandleService.h" />
     <ClInclude Include="FollowSlope\FollowSlopeService.h" />
     <ClInclude Include="include\occutils\Axis.hxx" />
     <ClInclude Include="include\occutils\Boolean.hxx" />
@@ -208,6 +215,7 @@
     <ClInclude Include="include\occutils\STEPExport.hxx" />
     <ClInclude Include="include\occutils\Surface.hxx" />
     <ClInclude Include="include\occutils\Wire.hxx" />
+    <ClInclude Include="include\occutils\Solid.hxx" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

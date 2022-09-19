@@ -2,6 +2,8 @@
 #include <TopoDS_Face.hxx>
 #include <TopoDS_Wire.hxx>
 #include <TopoDS_Edge.hxx>
+#include <TopoDS_Vertex.hxx>
+#include <BRep_Tool.hxx>
 #include <initializer_list>
 #include <vector>
 #include <optional>
@@ -60,5 +62,12 @@ namespace OCCUtils {
         * Get edge In face
         */
         std::vector<TopoDS_Edge> FaceEdges(TopoDS_Face);
+
+        /**
+        * Get points In face
+        */
+        std::vector<gp_Pnt> FacePoints(TopoDS_Face);
+
+        bool FaceIntersect(TopoDS_Face, TopoDS_Face);
     }
 }

@@ -30,6 +30,11 @@ namespace OCCUtils {
          * This is a convenience wrapper to
          * programmatically build wires.
          */
+
+        gp_Dir NormalDir(const TopoDS_Wire& wire);
+
+        void AddNewellPoint(const gp_Pnt& previous, const gp_Pnt& current, double& x, double& y, double& z);
+
         class IncrementalBuilder {
         public:
             IncrementalBuilder(const gp_Pnt& pnt);

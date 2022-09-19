@@ -3,6 +3,9 @@
 #include "occutils/Surface.hxx"
 
 #include <BRepBuilderAPI_MakeFace.hxx>
+#include <BOPAlgo_Section.hxx>
+#include <BOPDS_VectorOfInterfEE.hxx>
+#include <BOPDS_DS.hxx>
 #include <TopExp_Explorer.hxx>
 #include <TopoDS.hxx>
 
@@ -58,4 +61,39 @@ std::vector<TopoDS_Edge> OCCUtils::Face::FaceEdges(TopoDS_Face face) {
         resEdges.push_back(edge);
     }
     return resEdges;
+}
+
+std::vector<gp_Pnt> OCCUtils::Face::FacePoints(TopoDS_Face face)
+{
+    std::vector<gp_Pnt> resPts;
+    for (TopExp_Explorer expVert(face, TopAbs_VERTEX); expVert.More(); expVert.Next())
+    {
+        TopoDS_Vertex vert = TopoDS::Vertex(expVert.Current());
+        auto pt = BRep_Tool::Pnt(vert);
+        bool has = false;
+        for (auto vecPt : resPts)
+        {
+            if (vecPt.IsEqual(pt, 0.0001))
+            {
+                has = true;
+            }
+        }
+        if (!has)
+        {
+            resPts.push_back(pt);
+        }
+    }
+    return resPts;
+}
+
+bool OCCUtils::Face::FaceIntersect(TopoDS_Face face, TopoDS_Face otherFace)
+{
+    BOPAlgo_Section build;
+    build.AddArgument(face);
+    build.AddArgument(otherFace);
+    build.Perform();
+    BOPDS_DS* ds = build.PDS();
+    BOPDS_VectorOfInterfEE& ee = ds->InterfEE();
+    return ee.Length() > 0;
+    return false;
 }
